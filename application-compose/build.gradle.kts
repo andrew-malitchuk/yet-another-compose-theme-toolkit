@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -32,13 +33,31 @@ kotlin {
 
     jvm("desktop")
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        this.moduleName = "application-compose"
+        browser {
+            val rootDirPath = project.rootDir.path
+            val projectDirPath = project.projectDir.path
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply {
+                        // Serve sources to debug inside browser
+                        add(rootDirPath)
+                        add(projectDirPath)
+                    }
+                }
+            }
+        }
+        binaries.executable()
+    }
+
     sourceSets {
         val desktopMain by getting
 
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
-        }
-        iosMain.dependencies {
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -52,13 +71,27 @@ kotlin {
             implementation(projects.presentationFeatureHost)
             implementation(projects.dataPreference)
             implementation(projects.dataPreferenceImpl)
-            implementation(projects.dataRepository)
             implementation(projects.dataRepositoryImpl)
+            implementation(projects.domainRepository)
+            implementation(projects.dataRepositoryImpl)
+            implementation(projects.domainCore)
             implementation(projects.domainUsecase)
             implementation(projects.domainUsecaseImpl)
+            implementation(projects.presentationCoreUi)
             implementation(projects.presentationCoreLogger)
             implementation(projects.presentationCoreLoggerImpl)
             implementation(projects.presentationCoreLocalisation)
+            implementation(projects.presentationFeatureOnboarding)
+            implementation(projects.presentationFeatureHome)
+            implementation(projects.presentationFeatureSettings)
+            implementation(projects.presentationFeatureAbout)
+            implementation(projects.presentationFeatureThemeColor)
+            implementation(projects.presentationFeatureThemeTypography)
+            implementation(projects.presentationFeatureThemeFontSize)
+            implementation(projects.presentationFeatureThemeFontFamily)
+            implementation(projects.presentationFeatureThemeSize)
+            implementation(projects.presentationFeatureThemeLineSize)
+            implementation(projects.presentationFeatureThemeOffset)
         }
         desktopMain.dependencies {
             implementation(libs.kotlinx.coroutines.swing)
