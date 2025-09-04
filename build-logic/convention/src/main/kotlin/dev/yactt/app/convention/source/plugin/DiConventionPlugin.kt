@@ -13,15 +13,14 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 class DiConventionPlugin : Plugin<Project> {
 
-
     override fun apply(target: Project) {
         with(target) {
             extensions.getByType<KotlinMultiplatformExtension>().apply {
                 sourceSets.apply {
                     commonMain.dependencies {
-                        api("io.insert-koin:koin-core:4.0.2")
-                        implementation("io.insert-koin:koin-compose:4.0.2")
-                        implementation("io.insert-koin:koin-compose-viewmodel:4.0.2")
+                        api(libs.findLibrary("koin-core").get())
+                        implementation(libs.findLibrary("koin-compose").get())
+                        implementation(libs.findLibrary("koin-composeVM").get())
                     }
                     androidMain.dependencies {
 

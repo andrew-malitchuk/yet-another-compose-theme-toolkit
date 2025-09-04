@@ -13,6 +13,7 @@ import org.jetbrains.compose.compose
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.provideDelegate
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 @Suppress("unused")
@@ -26,6 +27,7 @@ class FeatureConventionPlugin : Plugin<Project> {
             logger.lifecycle("moduleName: $path")
 
             with(pluginManager) {
+                apply(libs.findPlugin("kotlinSerialization").get().get().pluginId)
                 apply(libs.findPlugin("kotlinMultiplatform").get().get().pluginId)
                 apply(libs.findPlugin("androidLibrary").get().get().pluginId)
                 apply(libs.findPlugin("composeMultiplatform").get().get().pluginId)
@@ -36,6 +38,25 @@ class FeatureConventionPlugin : Plugin<Project> {
                 val composeDeps = extensions.getByType<ComposeExtension>().dependencies
                 extensions.getByType<KotlinMultiplatformExtension>().apply {
                     jvm()
+                    @OptIn(ExperimentalWasmDsl::class)
+                    wasmJs {
+                        this.moduleName = moduleName
+                        browser {
+                            val rootDirPath = project.rootDir.path
+                            val projectDirPath = project.projectDir.path
+                            commonWebpackConfig {
+                                outputFileName = "composeApp.js"
+                                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                                    static = (static ?: mutableListOf()).apply {
+                                        // Serve sources to debug inside browser
+                                        add(rootDirPath)
+                                        add(projectDirPath)
+                                    }
+                                }
+                            }
+                        }
+                        binaries.executable()
+                    }
                     androidTarget().apply {
                         compilations.all {
                             kotlinOptions {
@@ -51,7 +72,7 @@ class FeatureConventionPlugin : Plugin<Project> {
                         iosTarget.binaries.framework {
                             baseName = moduleName
                             isStatic = true
-                            export(project("$path"))
+                            export(project(path))
                         }
                     }
 
@@ -61,18 +82,24 @@ class FeatureConventionPlugin : Plugin<Project> {
                         }
                         // https://slack-chats.kotlinlang.org/t/23173883/web-target-it-works-with-ios-android-desktop-but-now-my-wasm
                         commonMain.dependencies {
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-                            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.8.4")
-                            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+                            implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                            implementation(libs.findLibrary("androidx-lifecycle-viewmodel").get())
+                            implementation(
+                                libs.findLibrary("androidx-lifecycle-runtime-compose").get()
+                            )
                             implementation(composeDeps.runtime)
                             implementation(composeDeps.foundation)
                             implementation(composeDeps.material)
                             implementation(composeDeps.ui)
                         }
+                        wasmJsMain.dependencies {
+                            implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                        }
 
                         jvmMain.dependencies {
                             implementation(composeDeps.desktop.currentOs)
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+                            implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
+
                         }
                     }
                 }

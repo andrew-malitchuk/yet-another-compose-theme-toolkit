@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 @Suppress("unused")
 class LibraryConventionPlugin : Plugin<Project> {
@@ -39,6 +40,25 @@ class LibraryConventionPlugin : Plugin<Project> {
             with(libs) {
                 extensions.getByType<KotlinMultiplatformExtension>().apply {
                     jvm()
+                    @OptIn(ExperimentalWasmDsl::class)
+                    wasmJs {
+                        this.moduleName = moduleName
+                        browser {
+                            val rootDirPath = project.rootDir.path
+                            val projectDirPath = project.projectDir.path
+                            commonWebpackConfig {
+                                outputFileName = "composeApp.js"
+                                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                                    static = (static ?: mutableListOf()).apply {
+                                        // Serve sources to debug inside browser
+                                        add(rootDirPath)
+                                        add(projectDirPath)
+                                    }
+                                }
+                            }
+                        }
+                        binaries.executable()
+                    }
                     androidTarget().apply {
                         compilations.all {
                             kotlinOptions {
@@ -61,18 +81,20 @@ class LibraryConventionPlugin : Plugin<Project> {
                     sourceSets.apply {
                         // https://slack-chats.kotlinlang.org/t/23173883/web-target-it-works-with-ios-android-desktop-but-now-my-wasm
                         commonMain.dependencies {
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
-                            implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.8.4")
-                            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+                            implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                            implementation(libs.findLibrary("androidx-lifecycle-viewmodel").get())
+                            implementation(
+                                libs.findLibrary("androidx-lifecycle-runtime-compose").get()
+                            )
+                        }
+                        wasmJsMain.dependencies {
+                            implementation(libs.findLibrary("kotlinx-coroutines-core").get())
                         }
                         androidMain.dependencies {
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
-                        }
-                        iosMain.dependencies {
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+                            implementation(libs.findLibrary("coroutines-android").get())
                         }
                         jvmMain.dependencies {
-                            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+                            implementation(libs.findLibrary("kotlinx-coroutines-swing").get())
                         }
                     }
                 }
