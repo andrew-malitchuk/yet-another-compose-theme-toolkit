@@ -17,6 +17,7 @@ detektGradlePlugin = "1.23.6"
 gradle = "8.7.3"
 junit = "4.13.2"
 kotlin = "2.1.0"
+kotlinSerialization = "2.0.20"
 kotlinGradlePlugin = "2.0.20"
 kotlinx-coroutines = "1.10.1"
 kotlinxSerializationCore = "1.7.3"
@@ -27,6 +28,8 @@ koin = "4.0.2"
 navigationCompose = "2.8.0-alpha10"
 material3WindowSizeClassMultiplatform = "0.5.0"
 orgJetbrainsKotlinMultiplatformGradlePlugin = "2.0.20"
+coroutines = "1.10.1"
+lifecycle = "2.8.4"
 
 
 [libraries]
@@ -67,6 +70,9 @@ navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-co
 material3-windowsizeclass-multiplatform = { group = "dev.chrisbanes.material3", name = "material3-window-size-class-multiplatform", version.ref = "material3WindowSizeClassMultiplatform" }
 ktor-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 org-jetbrains-kotlin-multiplatform-gradle-plugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "orgJetbrainsKotlinMultiplatformGradlePlugin" }
+# Coroutines
+coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -74,3 +80,4 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
