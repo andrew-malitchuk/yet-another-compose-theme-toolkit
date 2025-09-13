@@ -6,5 +6,7 @@ data class SettingsLocalisation(
     val title: String,
     val darkMode: String,
     val language: String,
+    val type: String,
     val github: String,
+    val about: String,
 )
